@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>法言 · 对话式法律顾问后台</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #eef2f7; padding: 20px; min-height: 100vh; }
+    .admin-wrapper {
+      max-width: 1480px; margin: 0 auto; background: white; border-radius: 40px;
+      box-shadow: 0 30px 60px -20px rgba(0,20,40,0.3); overflow: hidden;
+    }
+    .admin-header {
+      background: #0b1e33; padding: 16px 32px; display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: center; border-bottom: 1px solid #1f3a57;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: white; }
+    .brand i { font-size: 28px; color: #8bb9ff; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 16px; }
+    .brand h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .brand span { font-weight: 400; color: #9bbdf0; font-size: 15px; margin-left: 6px; }
+    .admin-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .admin-actions button {
+      background: rgba(255,255,255,0.06); border: 1px solid #2a4a6a; color: #d6e7ff;
+      padding: 8px 18px; border-radius: 60px; font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;
+    }
+    .admin-actions button:hover { background: #1c3b5e; border-color: #5f8fd9; color: white; }
+    .admin-actions .user-badge {
+      background: #1c3b5e; padding: 6px 18px 6px 14px; border-radius: 60px;
+      color: #b8d4ff; display: flex; align-items: center; gap: 10px; font-size: 14px;
+      border: 1px solid #30577d;
+    }
+    .admin-grid {
+      display: grid; grid-template-columns: 1fr 360px; gap: 0; background: #f8fafd;
+    }
+    @media (max-width: 1024px) { .admin-grid { grid-template-columns: 1fr; } }
+    .main-panel { padding: 24px 28px 32px; background: white; }
+    .welcome-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 22px;
+    }
+    .welcome-bar h2 { font-size: 26px; font-weight: 600; color: #0b1e33; }
+    .welcome-bar .sub { color: #3f6282; background: #eaf0fa; padding: 4px 18px; border-radius: 40px; font-size: 14px; }
+    .feature-tabs {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;
+    }
+    .feature-tabs button {
+      background: #f1f6fd; border: 1px solid #dde7f3; padding: 10px 22px; border-radius: 40px;
+      font-weight: 500; color: #1d3f61; cursor: pointer; transition: 0.15s;
+      display: flex; align-items: center; gap: 8px; font-size: 14px;
+    }
+    .feature-tabs button.active { background: #0b1e33; border-color: #0b1e33; color: white; }
+    .feature-tabs button i { font-size: 16px; }
+    .dynamic-area {
+      background: #f9fcff; border-radius: 28px; padding: 22px 24px;
+      border: 1px solid #e6eff8; min-height: 280px;
+    }
+    .area-header {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 18px;
+    }
+    .area-header h3 { font-size: 20px; font-weight: 600; color: #0b1e33; display: flex; align-items: center; gap: 10px; }
+    .area-header .badge-status { background: #dce9fc; padding: 4px 16px; border-radius: 30px; font-size: 13px; color: #13538a; }
+    .input-row {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .input-row input, .input-row select {
+      flex: 1; min-width: 160px; padding: 10px 16px; border-radius: 60px;
+      border: 1px solid #d4e1ee; background: white; font-size: 14px;
+    }
+    .input-row input:focus, .input-row select:focus { outline: none; border-color: #2f7ec4; box-shadow: 0 0 0 3px rgba(47,126,196,0.12); }
+    .btn-primary {
+      background: #0b2b4a; border: none; padding: 10px 28px; border-radius: 60px;
+      color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+      cursor: pointer; transition: 0.2s; font-size: 14px;
+    }
+    .btn-primary:hover { background: #144a74; transform: scale(1.01); }
+    .btn-outline-dark {
+      background: transparent; border: 1px solid #b6cee8; padding: 10px 22px;
+      border-radius: 60px; font-weight: 500; color: #1b446a; cursor: pointer;
+      transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline-dark:hover { background: #e3effb; }
+    .list-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .list-table th { text-align: left; padding: 12px 8px 8px 0; color: #2b4f73; font-weight: 600; border-bottom: 1px solid #dce7f2; }
+    .list-table td { padding: 12px 8px 12px 0; border-bottom: 1px solid #ecf2f9; vertical-align: middle; }
+    .list-table .actions i { margin: 0 6px; color: #306a9e; cursor: pointer; transition: 0.1s; }
+    .list-table .actions i:hover { color: #0b2b4a; transform: scale(1.1); }
+    .empty-state { color: #6f8baa; padding: 20px 0; text-align: center; }
+    .tag { background: #dce9fc; padding: 2px 12px; border-radius: 30px; font-size: 12px; }
+    .side-panel { background: #f1f6fe; padding: 24px 22px; border-left: 1px solid #dce7f2; display: flex; flex-direction: column; }
+    .side-panel h3 { font-weight: 600; color: #0b1e33; font-size: 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .session-item {
+      background: white; border-radius: 18px; padding: 14px 16px; margin-bottom: 12px;
+      border: 1px solid #e2edf8; display: flex; justify-content: space-between; align-items: center;
+      transition: 0.15s;
+    }
+    .session-item:hover { border-color: #b2ceec; background: #f8fcff; }
+    .session-item .info { display: flex; flex-direction: column; gap: 4px; flex:1; }
+    .session-item .info strong { font-size: 14px; color: #0b1e33; }
+    .session-item .info span { font-size: 12px; color: #4b6b89; }
+    .session-item .del { color: #b95c5c; cursor: pointer; padding: 4px 8px; border-radius: 30px; }
+    .session-item .del:hover { background: #fce0e0; color: #a13030; }
+    .side-action { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .side-action button { flex:1; background: white; border: 1px solid #d1e0ef; padding: 10px 0; border-radius: 60px; font-weight: 500; cursor: pointer; }
+    .side-action button:hover { background: #e6f0fc; }
+    .footnote { margin-top: 28px; font-size: 12px; color: #4d6a89; border-top: 1px solid #cedfef; padding-top: 16px; text-align: center; }
+    .chat-toggle {
+      position: fixed; bottom: 30px; right: 30px; z-index: 999;
+      background: #0b1e33; color: white; border: none; width: 70px; height: 70px;
+      border-radius: 40px; font-size: 32px; box-shadow: 0 12px 30px rgba(0,20,40,0.4);
+      cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .chat-toggle:hover { transform: scale(1.05); background: #1a3d5e; }
+    .chat-window {
+      position: fixed; bottom: 120px; right: 30px; z-index: 998;
+      width: 400px; max-width: calc(100vw - 40px); height: 500px; max-height: 70vh;
+      background: white; border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: all 0.25s; border: 1px solid #dce7f2;
+    }
+    .chat-window.hidden { opacity: 0; pointer-events: none; transform: translateY(30px) scale(0.96); }
+    .chat-header {
+      background: #0b1e33; color: white; padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .chat-header h4 { font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .chat-header .close-chat { background: none; border: none; color: #b0cef0; font-size: 22px; cursor: pointer; }
+    .chat-messages {
+      flex: 1; padding: 16px 18px; overflow-y: auto; background: #f6faff;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .msg { padding: 12px 16px; border-radius: 20px; max-width: 85%; line-height: 1.5; font-size: 14px; word-break: break-word; }
+    .msg.user { background: #0b1e33; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .msg.bot { background: white; border: 1px solid #dce7f2; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg .time { font-size: 10px; opacity: 0.6; margin-top: 6px; display: block; }
+    .chat-input-area {
+      display: flex; gap: 10px; padding: 12px 16px; background: white; border-top: 1px solid #e2edf8;
+    }
+    .chat-input-area input {
+      flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #d4e1ee;
+      font-size: 14px; outline: none;
+    }
+    .chat-input-area input:focus { border-color: #2f7ec4; box-shadow: 0 0 0 3px rgba(47,126,196,0.12); }
+    .chat-input-area button {
+      background: #0b1e33; color: white; border: none; width: 50px; border-radius: 40px;
+      font-size: 18px; cursor: pointer; transition: 0.2s;
+    }
+    .chat-input-area button:hover { background: #1a3d5e; }
+    .typing-indicator { color: #4b6b89; font-size: 13px; padding: 6px 16px; }
+    @media (max-width: 480px) { .chat-window { width: calc(100vw - 20px); right: 10px; bottom: 100px; } }
+  </style>
+</head>
+<body>
+<div class="admin-wrapper">
+  <header class="admin-header">
+    <div class="brand"><i class="fas fa-gavel"></i><h1>法言 <span>· 管理后台</span></h1></div>
+    <div class="admin-actions">
+      <button id="registerBtn"><i class="fas fa-user-plus"></i> 注册</button>
+      <button id="changePwdBtn"><i class="fas fa-key"></i> 修改密码</button>
+      <span class="user-badge"><i class="fas fa-user-circle"></i> admin@legal.com</span>
+    </div>
+  </header>
+  <div class="admin-grid">
+    <div class="main-panel">
+      <div class="welcome-bar">
+        <h2><i class="fas fa-crown" style="color: #f1b04a; margin-right: 10px;"></i> 管理控制台</h2>
+        <span class="sub"><i class="fas fa-database"></i> 实时数据 · 智能法律顾问</span>
+      </div>
+      <div class="feature-tabs" id="featureTabs">
+        <button class="active" data-tab="templates"><i class="fas fa-cubes"></i> 模板管理</button>
+        <button data-tab="users"><i class="fas fa-users-cog"></i> 用户管理</button>
+        <button data-tab="history"><i class="fas fa-history"></i> 会话历史</button>
+      </div>
+      <div class="dynamic-area" id="dynamicArea">
+        <div class="area-header">
+          <h3 id="areaTitle"><i class="fas fa-cubes"></i> 模板管理</h3>
+          <span class="badge-status" id="areaBadge">3 个模板</span>
+        </div>
+        <div id="tabContent"></div>
+      </div>
+    </div>
+    <div class="side-panel">
+      <h3><i class="fas fa-history"></i> 我的会话历史</h3>
+      <div id="sessionList" style="flex:1; overflow-y: auto; max-height: 320px;"></div>
+      <div class="side-action">
+        <button id="refreshSessions"><i class="fas fa-sync-alt"></i> 刷新</button>
+        <button id="clearAllSessions" style="color:#a53f3f;"><i class="fas fa-trash-alt"></i> 清空全部</button>
+      </div>
+      <div style="margin-top:18px; background:#e4effa; border-radius:24px; padding:16px;">
+        <i class="fas fa-shield-alt" style="color:#1f6bb8;"></i> 仅您可见，可随时删除。
+      </div>
+      <div class="footnote"><i class="fas fa-user-lock"></i> 安全 · 数据隔离</div>
+    </div>
+  </div>
+</div>
+
+<button class="chat-toggle" id="chatToggle"><i class="fas fa-comment-dots"></i></button>
+
+<div class="chat-window hidden" id="chatWindow">
+  <div class="chat-header">
+    <h4><i class="fas fa-robot" style="color:#8bb9ff;"></i> 法律顾问 AI</h4>
+    <button class="close-chat" id="closeChat"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg bot">您好！我是您的法律顾问。请描述您的问题，我会为您提供专业法律建议。</div>
+  </div>
+  <div class="chat-input-area">
+    <input type="text" id="chatInput" placeholder="输入法律问题..." />
+    <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ============================================================
+    //  ⭐ 使用老师的 API Key（混合模式：API优先，失败时自动降级到本地回复）
+    // ============================================================
+    const DEEPSEEK_API_KEY = 'sk-b2ef0f4db47a4319a1be26b98c07dcaf';
+    const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+
+    // ---------- 数据 ----------
+    let templates = [
+      { id: 't1', name: '劳动仲裁申请书', category: '劳动' },
+      { id: 't2', name: '房屋租赁合同', category: '合同' },
+      { id: 't3', name: '民事起诉状（民间借贷）', category: '诉讼' },
+    ];
+    let users = [
+      { id: 'u1', username: 'zhangwei', email: 'zhang@example.com', role: '律师' },
+      { id: 'u2', username: 'lina', email: 'lina@example.com', role: '法务' },
+      { id: 'u3', username: 'wangfang', email: 'wang@example.com', role: '普通' },
+    ];
+    let sessions = [
+      { id: 's1', title: '劳动仲裁咨询 · 经济补偿金', time: '2026-06-29 14:23', owner: 'admin@legal.com' },
+      { id: 's2', title: '租赁合同审核要点', time: '2026-06-29 11:10', owner: 'admin@legal.com' },
+      { id: 's3', title: '公司法第142条查询', time: '2026-06-28 21:45', owner: 'admin@legal.com' },
+    ];
+    const currentUser = 'admin@legal.com';
+
+    const tabContent = document.getElementById('tabContent');
+    const areaTitle = document.getElementById('areaTitle');
+    const areaBadge = document.getElementById('areaBadge');
+    const sessionList = document.getElementById('sessionList');
+
+    // 注册 & 密码修改
+    document.getElementById('registerBtn').addEventListener('click', function() {
+      const name = prompt('注册新用户 (模拟) 输入用户名:');
+      if (name && name.trim()) {
+        users.push({ id: 'u' + Date.now(), username: name.trim(), email: name.trim() + '@legal.com', role: '普通' });
+        alert(`✅ 用户 ${name} 注册成功！`);
+        renderTab('users'); updateBadge();
+      }
+    });
+    document.getElementById('changePwdBtn').addEventListener('click', function() {
+      const old = prompt('请输入旧密码 (模拟):');
+      if (old !== null) {
+        const newPwd = prompt('请输入新密码 (模拟):');
+        if (newPwd && newPwd.length >= 4) alert('✅ 密码修改成功');
+        else alert('❌ 密码长度至少4位');
+      }
+    });
+
+    // ---------- 渲染 ----------
+    function renderTab(tab) {
+      document.querySelectorAll('#featureTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelector(`#featureTabs button[data-tab="${tab}"]`)?.classList.add('active');
+      let html = '';
+      if (tab === 'templates') {
+        areaTitle.innerHTML = '<i class="fas fa-cubes"></i> 模板管理';
+        html = `
+          <div class="input-row">
+            <input type="text" id="templateNameInput" placeholder="模板名称 (如: 劳动仲裁申请书)" />
+            <input type="text" id="templateCategoryInput" placeholder="分类 (如: 劳动/合同)" />
+            <button class="btn-primary" id="addTemplateBtn"><i class="fas fa-plus"></i> 添加模板</button>
+          </div>
+          <table class="list-table"><thead><tr><th>名称</th><th>分类</th><th style="text-align:right;">操作</th></tr></thead>
+            <tbody id="templateTableBody">${templates.map(t => `<tr>
+              <td><i class="fas fa-file-alt" style="color:#1f6bb8;"></i> ${t.name}</td>
+              <td><span class="tag">${t.category}</span></td>
+              <td style="text-align:right;" class="actions">
+                <i class="fas fa-edit" data-id="${t.id}" data-action="editTemplate"></i>
+                <i class="fas fa-trash-alt" style="color:#b95c5c;" data-id="${t.id}" data-action="deleteTemplate"></i>
+              </td>
+            </tr>`).join('')}</tbody>
+          </table>
+          <div style="margin-top:12px; font-size:13px; color:#306a9e;"><i class="fas fa-info-circle"></i> 支持动态添加/删除模板</div>
+        `;
+        areaBadge.textContent = `${templates.length} 个模板`;
+      } else if (tab === 'users') {
+        areaTitle.innerHTML = '<i class="fas fa-users-cog"></i> 用户管理';
+        html = `
+          <div class="input-row">
+            <input type="text" id="newUserName" placeholder="用户名 (如: zhang)" />
+            <input type="text" id="newUserEmail" placeholder="邮箱 (选填)" />
+            <button class="btn-primary" id="addUserBtn"><i class="fas fa-user-plus"></i> 添加用户</button>
+          </div>
+          <table class="list-table"><thead><tr><th>用户名</th><th>邮箱</th><th>角色</th><th style="text-align:right;">操作</th></tr></thead>
+            <tbody id="userTableBody">${users.map(u => `<tr>
+              <td><i class="fas fa-user-circle"></i> ${u.username}</td>
+              <td>${u.email}</td>
+              <td><span class="tag">${u.role}</span></td>
+              <td style="text-align:right;" class="actions">
+                <i class="fas fa-edit" data-id="${u.id}" data-action="editUser"></i>
+                <i class="fas fa-trash-alt" style="color:#b95c5c;" data-id="${u.id}" data-action="deleteUser"></i>
+              </td>
+            </tr>`).join('')}</tbody>
+          </table>
+          <div style="margin-top:12px; font-size:13px; color:#306a9e;"><i class="fas fa-shield-alt"></i> 管理员可管理所有用户</div>
+        `;
+        areaBadge.textContent = `${users.length} 位用户`;
+      } else if (tab === 'history') {
+        areaTitle.innerHTML = '<i class="fas fa-history"></i> 会话历史 (全局)';
+        const mySessions = sessions.filter(s => s.owner === currentUser);
+        html = `
+          <div style="margin-bottom:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:14px; color:#1b446a;"><i class="fas fa-user"></i> 当前用户: ${currentUser}</span>
+            <button class="btn-outline-dark" id="deleteAllMySessions" style="border-color:#e6b3b3; color:#a53f3f;"><i class="fas fa-trash"></i> 删除我的全部会话</button>
+          </div>
+          <table class="list-table"><thead><tr><th>会话标题</th><th>时间</th><th style="text-align:right;">操作</th></tr></thead>
+            <tbody id="historyTableBody">${mySessions.length === 0 ? `<tr><td colspan="3" class="empty-state">暂无会话记录</td></tr>` :
+              mySessions.map(s => `<tr>
+                <td><i class="fas fa-comment-dots" style="color:#1f6bb8;"></i> ${s.title}</td>
+                <td>${s.time}</td>
+                <td style="text-align:right;">
+                  <i class="fas fa-trash-alt" style="color:#b95c5c; cursor:pointer;" data-id="${s.id}" data-action="deleteSession"></i>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top:12px; font-size:13px; color:#306a9e;"><i class="fas fa-info-circle"></i> 您只能删除自己的会话历史</div>
+        `;
+        areaBadge.textContent = `${mySessions.length} 条记录`;
+      }
+      tabContent.innerHTML = html;
+      bindDynamicEvents(tab);
+    }
+
+    function bindDynamicEvents(tab) {
+      if (tab === 'templates') {
+        document.getElementById('addTemplateBtn')?.addEventListener('click', function() {
+          const name = document.getElementById('templateNameInput')?.value.trim();
+          const cat = document.getElementById('templateCategoryInput')?.value.trim() || '通用';
+          if (!name) { alert('请输入模板名称'); return; }
+          templates.push({ id: 't' + Date.now(), name, category: cat });
+          renderTab('templates'); updateSideSessions();
+        });
+        document.querySelectorAll('#templateTableBody [data-action="deleteTemplate"]').forEach(el => {
+          el.addEventListener('click', function() {
+            if (confirm('删除该模板？')) {
+              templates = templates.filter(t => t.id !== this.dataset.id);
+              renderTab('templates'); updateSideSessions();
+            }
+          });
+        });
+        document.querySelectorAll('#templateTableBody [data-action="editTemplate"]').forEach(el => {
+          el.addEventListener('click', function() {
+            const t = templates.find(t => t.id === this.dataset.id);
+            if (!t) return;
+            const newName = prompt('修改模板名称:', t.name);
+            if (newName && newName.trim()) { t.name = newName.trim(); renderTab('templates'); updateSideSessions(); }
+          });
+        });
+      } else if (tab === 'users') {
+        document.getElementById('addUserBtn')?.addEventListener('click', function() {
+          const name = document.getElementById('newUserName')?.value.trim();
+          const email = document.getElementById('newUserEmail')?.value.trim() || (name + '@legal.com');
+          if (!name) { alert('请输入用户名'); return; }
+          users.push({ id: 'u' + Date.now(), username: name, email, role: '普通' });
+          renderTab('users'); updateSideSessions();
+        });
+        document.querySelectorAll('#userTableBody [data-action="deleteUser"]').forEach(el => {
+          el.addEventListener('click', function() {
+            if (confirm('删除该用户？')) {
+              users = users.filter(u => u.id !== this.dataset.id);
+              renderTab('users'); updateSideSessions();
+            }
+          });
+        });
+        document.querySelectorAll('#userTableBody [data-action="editUser"]').forEach(el => {
+          el.addEventListener('click', function() {
+            const u = users.find(u => u.id === this.dataset.id);
+            if (!u) return;
+            const newRole = prompt('修改角色 (律师/法务/普通):', u.role);
+            if (newRole && newRole.trim()) { u.role = newRole.trim(); renderTab('users'); updateSideSessions(); }
+          });
+        });
+      } else if (tab === 'history') {
+        document.querySelectorAll('#historyTableBody [data-action="deleteSession"]').forEach(el => {
+          el.addEventListener('click', function() {
+            if (confirm('删除该会话记录？')) {
+              sessions = sessions.filter(s => s.id !== this.dataset.id);
+              renderTab('history'); updateSideSessions();
+            }
+          });
+        });
+        document.getElementById('deleteAllMySessions')?.addEventListener('click', function() {
+          if (confirm('删除当前用户的所有会话历史？')) {
+            sessions = sessions.filter(s => s.owner !== currentUser);
+            renderTab('history'); updateSideSessions();
+          }
+        });
+      }
+    }
+
+    function updateSideSessions() {
+      const my = sessions.filter(s => s.owner === currentUser);
+      if (my.length === 0) { sessionList.innerHTML = `<div class="empty-state" style="padding:20px 0;">暂无会话</div>`; return; }
+      sessionList.innerHTML = my.map(s => `
+        <div class="session-item">
+          <div class="info"><strong>${s.title}</strong><span><i class="far fa-clock"></i> ${s.time}</span></div>
+          <div class="del" data-id="${s.id}" title="删除此会话"><i class="fas fa-times-circle"></i></div>
+        </div>
+      `).join('');
+      document.querySelectorAll('.session-item .del').forEach(el => {
+        el.addEventListener('click', function() {
+          const id = this.dataset.id;
+          if (confirm('删除该会话？')) {
+            sessions = sessions.filter(s => s.id !== id);
+            updateSideSessions();
+            const activeTab = document.querySelector('#featureTabs .active')?.dataset.tab;
+            if (activeTab === 'history') renderTab('history');
+          }
+        });
+      });
+    }
+
+    document.getElementById('refreshSessions').addEventListener('click', updateSideSessions);
+    document.getElementById('clearAllSessions').addEventListener('click', function() {
+      if (confirm('清空当前用户所有会话历史？')) {
+        sessions = sessions.filter(s => s.owner !== currentUser);
+        updateSideSessions();
+        const activeTab = document.querySelector('#featureTabs .active')?.dataset.tab;
+        if (activeTab === 'history') renderTab('history');
+      }
+    });
+
+    document.querySelectorAll('#featureTabs button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        renderTab(this.dataset.tab);
+        updateSideSessions();
+      });
+    });
+
+    function updateBadge() {
+      const activeTab = document.querySelector('#featureTabs .active')?.dataset.tab;
+      if (activeTab === 'templates') areaBadge.textContent = `${templates.length} 个模板`;
+      else if (activeTab === 'users') areaBadge.textContent = `${users.length} 位用户`;
+      else if (activeTab === 'history') {
+        const my = sessions.filter(s => s.owner === currentUser);
+        areaBadge.textContent = `${my.length} 条记录`;
+      }
+    }
+
+    // ============================================================
+    //  ⭐ 对话模块 - 混合模式（API优先，失败时自动降级到本地回复）
+    // ============================================================
+    const chatToggle = document.getElementById('chatToggle');
+    const chatWindow = document.getElementById('chatWindow');
+    const closeChat = document.getElementById('closeChat');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+
+    function toggleChat(show) {
+      chatWindow.classList.toggle('hidden', !show);
+    }
+    chatToggle.addEventListener('click', () => toggleChat(true));
+    closeChat.addEventListener('click', () => toggleChat(false));
+
+    function addMessage(text, sender) {
+      const div = document.createElement('div');
+      div.className = `msg ${sender}`;
+      div.innerHTML = text + `<span class="time">${new Date().toLocaleTimeString()}</span>`;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+      const div = document.createElement('div');
+      div.className = 'msg bot';
+      div.id = 'typingIndicator';
+      div.innerHTML = '⏳ AI 正在思考...';
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTyping() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) indicator.remove();
+    }
+
+    // ============================================================
+    //  ⭐ 本地智能回复（当 API 余额不足时自动启用）
+    // ============================================================
+    function getLocalResponse(userMsg) {
+      const lower = userMsg.toLowerCase();
+      
+      // 劳动法类
+      if (lower.includes('仲裁') || lower.includes('劳动') || lower.includes('辞退') || lower.includes('赔偿')) {
+        return '⚖️ 关于劳动仲裁，建议您收集以下证据：劳动合同、工资银行流水、辞退通知书、考勤记录等。仲裁时效为一年，可向公司所在地劳动仲裁委员会申请。根据《劳动合同法》第46条、第47条，违法解除劳动合同需支付经济补偿金（按工作年限，每满一年支付一个月工资）。';
+      }
+      // 合同类
+      if (lower.includes('合同') || lower.includes('租赁') || lower.includes('押金') || lower.includes('违约')) {
+        return '📄 关于合同纠纷，建议您先查看合同条款中关于违约责任和争议解决的约定。根据《民法典》合同编，当事人应当按约定全面履行义务。如对方违约，可要求继续履行、赔偿损失或解除合同。建议保留书面证据，协商不成可向法院起诉。';
+      }
+      // 婚姻类
+      if (lower.includes('离婚') || lower.includes('抚养权') || lower.includes('财产')) {
+        return '📋 离婚分为协议离婚和诉讼离婚。协议离婚需双方就子女抚养、财产分割达成一致，到民政局办理。诉讼离婚需向法院提交起诉状、结婚证、身份证等材料。根据《民法典》第1079条，感情确已破裂是判决离婚的法定条件。';
+      }
+      // 侵权类
+      if (lower.includes('侵权') || lower.includes('赔偿') || lower.includes('伤害') || lower.includes('责任')) {
+        return '⚖️ 根据《民法典》侵权责任编，侵害他人造成人身损害的，应当赔偿医疗费、护理费、交通费等合理费用。建议您及时收集证据（医疗记录、现场照片、证人证言），必要时报警处理。';
+      }
+      // 法规查询
+      if (lower.includes('法条') || lower.includes('规定') || lower.includes('法律')) {
+        return '📚 根据您的查询，建议查阅《民法典》《劳动法》《公司法》等相关法律。具体条文可通过"国家法律法规数据库"或"中国裁判文书网"查询。如有具体问题，请提供更多细节以便进一步分析。';
+      }
+      // 起诉/诉讼
+      if (lower.includes('起诉') || lower.includes('诉讼') || lower.includes('打官司')) {
+        return '📋 起诉需准备以下材料：起诉状（写明当事人信息、诉讼请求、事实理由）、证据清单及证据复印件、身份证明。根据《民事诉讼法》第122条，起诉必须符合法定条件。建议先尝试调解，诉讼周期一般为3-6个月。';
+      }
+      // 默认回复
+      return '💡 收到您的提问。作为法律顾问，我建议您：1）收集并保存所有相关书面证据；2）明确您的具体诉求；3）如涉及金额较大或情况复杂，建议咨询专业律师。您可以提供更多细节（如时间、金额、地区），我会给出更精准的分析。';
+    }
+
+    // ============================================================
+    //  ⭐ 调用 DeepSeek API（失败时自动降级到本地回复）
+    // ============================================================
+    async function getAIResponse(userMessage) {
+      try {
+        const response = await fetch(DEEPSEEK_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { 
+                role: 'system', 
+                content: '你是一位专业的法律顾问，拥有丰富的法律知识。请用专业、清晰、友好的语气回答用户的法律问题。'
+              },
+              { role: 'user', content: userMessage }
+            ],
+            temperature: 0.7,
+            max_tokens: 2048
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          // 如果是余额不足（402）或其他错误，自动降级到本地回复
+          if (response.status === 402 || response.status === 401) {
+            console.log('API 余额不足，使用本地回复模式');
+            return getLocalResponse(userMessage);
+          }
+          throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const reply = data.choices?.[0]?.message?.content;
+        if (reply) {
+          return reply;
+        } else {
+          return getLocalResponse(userMessage);
+        }
+      } catch (error) {
+        console.error('API 调用失败，使用本地回复:', error);
+        // 任何错误都降级到本地回复
+        return getLocalResponse(userMessage);
+      }
+    }
+
+    // ============================================================
+    //  ⭐ 处理发送消息
+    // ============================================================
+    async function handleSend() {
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      chatInput.value = '';
+      showTyping();
+
+      try {
+        const reply = await getAIResponse(text);
+        removeTyping();
+        addMessage(reply, 'bot');
+
+        const title = text.length > 20 ? text.slice(0, 20) + '...' : text;
+        sessions.push({
+          id: 's' + Date.now(),
+          title: '对话: ' + title,
+          time: new Date().toLocaleString(),
+          owner: currentUser
+        });
+        updateSideSessions();
+        const activeTab = document.querySelector('#featureTabs .active')?.dataset.tab;
+        if (activeTab === 'history') renderTab('history');
+      } catch (error) {
+        removeTyping();
+        addMessage(getLocalResponse(text), 'bot');
+        console.error(error);
+      }
+    }
+
+    chatSend.addEventListener('click', handleSend);
+    chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
+
+    renderTab('templates');
+    updateSideSessions();
+  })();
+</script>
+</body>
+</html>

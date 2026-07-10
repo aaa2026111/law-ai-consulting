@@ -1,0 +1,873 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: workflow
+  name: 43智能问数
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: junjiem/db_query:0.0.11@2eae0951f13c4e8daa099310d706c9502c349236bca81fcc996f2aea9524c97c
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/deepseek:0.0.19@5b68617c637b62d31e7f33a9f5677b76e88f81868fb04a728e208588564b72ea
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 10
+        file_size_limit: 50
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1783567498401-source-1783567502483-target
+      source: '1783567498401'
+      sourceHandle: source
+      target: '1783567502483'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: tool
+      id: 1783567502483-source-1783567510324-target
+      source: '1783567502483'
+      sourceHandle: source
+      target: '1783567510324'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: llm
+      id: 1783567510324-source-1783567513540-target
+      source: '1783567510324'
+      sourceHandle: source
+      target: '1783567513540'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1783567513540-source-1783567531846-target
+      source: '1783567513540'
+      sourceHandle: source
+      target: '1783567531846'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: query
+          options: []
+          placeholder: ''
+          required: true
+          type: text-input
+          variable: query
+      height: 112
+      id: '1783567498401'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            response_format: json_object
+            temperature: 0.7
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - id: 8d31b3d9-f142-477a-8f12-2e37333a4650
+          role: system
+          text: '你是一名电商数据分析 SQL 专家。用户用自然语言提问，你生成 MySQL 查询。
+
+
+            ## 数据库：shop_db，2 张宽表（维度已预 JOIN，禁止再 JOIN 任何表）
+
+
+            ---
+
+
+            ## 表选择规则
+
+
+            | 用户问题类型 | 用哪张表 | 金额字段 |
+
+            |-------------|----------|----------|
+
+            | 品类/品牌/商品/毛利/退款率分析 | **wide_order_details** | SUM(sub_total) |
+
+            | GMV/客单价/订单数/渠道/区域/支付分析 | **wide_orders** | SUM(actual_amount) |
+
+
+            > ⚠️ 两张表的金额字段不同，必须严格按上表选择！
+
+
+            ---
+
+
+            ## wide_order_details — 订单明细宽表（14.9万行 × 46列，商品行粒度）
+
+
+            ### 字段速查
+
+
+            | 分类 | 字段 | 类型 | 说明 |
+
+            |------|------|------|------|
+
+            | ID | order_detail_key, order_detail_id, order_key, order_id | — | 主键/业务键
+            |
+
+            | 时间 | order_date, order_year, order_quarter, order_month, order_month_name,
+            order_weekday, is_weekend, is_holiday | DATE/INT | 日期维度 |
+
+            | 客户 | customer_level, age_group, gender | VARCHAR/TINYINT | 客户画像 |
+
+            | 商品 | product_name, brand, unit | VARCHAR | 商品信息 |
+
+            | 品类 | category_name, category_level | VARCHAR/TINYINT | 品类（2/3级） |
+
+            | 区域 | region_name, region_level, region_path | VARCHAR/TINYINT | 区县级
+            |
+
+            | 渠道 | channel_name, channel_type | VARCHAR | 手机APP/小程序/PC官网/线下门店/分销渠道
+            |
+
+            | 状态 | order_status, status_type | VARCHAR | 待发货/已发货/已完成/已取消/已退款 |
+
+            | 支付 | payment_method | VARCHAR | 微信支付/支付宝/银行卡/货到付款 |
+
+            | 度量 | quantity, unit_price, sub_total, cost_price, gross_profit, discount_rate
+            | INT/DECIMAL | **sub_total是销售额** |
+
+
+            ### 枚举值
+
+            customer_level: 普通/银卡/金卡/钻石
+
+            channel_name: 手机APP/小程序/PC官网/线下门店/分销渠道
+
+            order_status: 待发货/已发货/已完成/已取消/已退款
+
+            payment_method: 微信支付/支付宝/银行卡/货到付款
+
+            category_name(level2): 女装/手机通讯/电脑办公
+
+            category_name(level3): T恤/休闲裤/台式电脑/坚果炒货/手机配件/智能手机/智能手环/智能手表/笔记本电脑/精华液/膨化食品/衬衫/连衣裙/面霜
+
+            region_name: 南山区/福田区/天河区/越秀区/西湖区/滨江区/鼓楼区/雁塔区/碑林区/锦江区/高新区/武昌区/洪山区/岳麓区/芙蓉区/玄武区/拱墅区/海珠区/禅城区/南海区/宝安区/罗湖区
+
+
+            ---
+
+
+            ## wide_orders — 订单宽表（5万行 × 42列，订单粒度）
+
+
+            ### 字段速查
+
+
+            | 分类 | 字段 | 类型 | 说明 |
+
+            |------|------|------|------|
+
+            | ID | order_key, order_id | — | 主键/业务键 |
+
+            | 下单时间 | order_date, order_year, order_quarter, order_month, is_weekend
+            | DATE/INT | 下单日期 |
+
+            | 支付时间 | payment_date, payment_year, payment_month | DATE/INT | 支付日期 |
+
+            | 发货时间 | shipping_date, shipping_year, shipping_month | DATE/INT | 发货日期
+            |
+
+            | 客户 | customer_level, age_group, gender | VARCHAR/TINYINT | 客户画像 |
+
+            | 区域 | region_name, region_level, region_path | VARCHAR/TINYINT | 区县级
+            |
+
+            | 渠道 | channel_name, channel_type | VARCHAR | 手机APP/小程序/PC官网/线下门店/分销渠道
+            |
+
+            | 状态 | order_status, status_type | VARCHAR | 待发货/已发货/已完成/已取消/已退款 |
+
+            | 支付 | payment_method | VARCHAR | 微信支付/支付宝/银行卡/货到付款 |
+
+            | 度量 | item_count, item_sku_count, actual_amount, original_amount, discount_amount,
+            coupon_amount, shipping_fee, paid_amount, refund_amount, is_first_order
+            | INT/DECIMAL | **actual_amount是GMV** |
+
+            | 计算 | avg_sku_price, discount_rate | DECIMAL | 客单均价/折扣率 |
+
+
+            ---
+
+
+            ## SQL 生成规范
+
+
+            ### ✅ 必须做
+
+            1. 单表查询，禁止任何 JOIN
+
+            2. 金额统计必须排除无效订单：WHERE order_status NOT IN (''已取消'',''已退款'')
+
+            3. 金额用 ROUND(SUM(...),2)，中文别名
+
+            4. 时间筛选：WHERE order_year=2026 AND order_month=5
+
+            5. 排名：ORDER BY ... DESC LIMIT N
+
+            6. wide_order_details 用 sub_total，wide_orders 用 actual_amount
+
+
+            ### ❌ 禁止
+
+            INSERT/UPDATE/DELETE/DROP/ALTER/SELECT */在SQL外加解释
+
+
+            ---
+
+
+            ## Few-Shot
+
+
+            ### 宽明细表
+
+            Q: 各渠道销售额排行
+
+            {"sql":"SELECT channel_name AS 渠道,COUNT(DISTINCT order_key) AS 订单量,ROUND(SUM(sub_total),2)
+            AS 销售额 FROM wide_order_details WHERE order_status NOT IN (''已取消'',''已退款'')
+            GROUP BY channel_name ORDER BY 销售额 DESC","intent":"渠道排行"}
+
+
+            Q: 金卡会员在手机APP上买手机通讯品类的品牌TOP5
+
+            {"sql":"SELECT brand AS 品牌,COUNT(DISTINCT order_key) AS 订单数,ROUND(SUM(sub_total),2)
+            AS 销售额 FROM wide_order_details WHERE customer_level=''金卡'' AND channel_name=''手机APP''
+            AND category_name=''手机通讯'' AND order_status NOT IN (''已取消'',''已退款'') GROUP
+            BY brand ORDER BY 销售额 DESC LIMIT 5","intent":"多维筛选"}
+
+
+            Q: 上个月毛利率最高的5个品类
+
+            {"sql":"SELECT category_name AS 品类,ROUND(SUM(sub_total),2) AS 销售额,ROUND(SUM(gross_profit),2)
+            AS 毛利,CONCAT(ROUND(SUM(gross_profit)/NULLIF(SUM(sub_total),0)*100,1),''%'')
+            AS 毛利率 FROM wide_order_details WHERE order_year=2026 AND order_month=5
+            AND order_status NOT IN (''已取消'',''已退款'') GROUP BY category_name ORDER
+            BY 毛利率 DESC LIMIT 5","intent":"毛利率排行"}
+
+
+            ### 订单宽表
+
+            Q: 上月总GMV
+
+            {"sql":"SELECT ROUND(SUM(actual_amount),2) AS GMV,COUNT(*) AS 订单数,ROUND(AVG(actual_amount),2)
+            AS 客单价 FROM wide_orders WHERE order_year=2026 AND order_month=5 AND order_status
+            NOT IN (''已取消'',''已退款'')","intent":"GMV汇总"}
+
+
+            Q: 今年每月退款率趋势
+
+            {"sql":"SELECT order_month AS 月份,COUNT(*) AS 总订单,SUM(CASE WHEN status_type=''已退款''
+            THEN 1 ELSE 0 END) AS 退款单,CONCAT(ROUND(SUM(CASE WHEN status_type=''已退款''
+            THEN 1 ELSE 0 END)*100.0/NULLIF(COUNT(*),0),1),''%'') AS 退款率 FROM wide_orders
+            WHERE order_year=2026 GROUP BY order_month ORDER BY order_month","intent":"退款率趋势"}
+
+
+            ---
+
+
+            ## 输出格式
+
+
+            只输出 JSON：{"sql":"SELECT...","intent":"意图2-5字"}
+
+            无法查询时：{"sql":"","intent":"无法识别"}'
+        - id: 13cf412d-ed7e-4d46-a4b1-192f4f403f63
+          role: user
+          text: 用户问题：{{#1783567498401.query#}}
+        selected: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              sql:
+                type: string
+            required: []
+            type: object
+        structured_output_enabled: true
+        title: 自然语言转SQL
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1783567502483'
+      position:
+        x: 382
+        y: 282
+      positionAbsolute:
+        x: 382
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        is_team_authorization: true
+        paramSchemas:
+        - auto_generate: null
+          default: mysql
+          form: llm
+          human_description:
+            en_US: Used for selecting the database type, mysql, oracle, oracle11g,
+              postgresql or mssql.
+            ja_JP: Used for selecting the database type, mysql, oracle, oracle11g,
+              postgresql or mssql.
+            pt_BR: Used for selecting the database type, mysql, oracle, oracle11g,
+              postgresql or mssql.
+            zh_Hans: 用于选择数据库类型，mysql、oracle、oracle11g、postgresql或mssql。
+          label:
+            en_US: Database type
+            ja_JP: Database type
+            pt_BR: Database type
+            zh_Hans: 数据库类型
+          llm_description: ''
+          max: null
+          min: null
+          name: db_type
+          options:
+          - icon: ''
+            label:
+              en_US: MySQL
+              ja_JP: MySQL
+              pt_BR: MySQL
+              zh_Hans: MySQL
+            value: mysql
+          - icon: ''
+            label:
+              en_US: Oracle
+              ja_JP: Oracle
+              pt_BR: Oracle
+              zh_Hans: Oracle
+            value: oracle
+          - icon: ''
+            label:
+              en_US: Oracle11g
+              ja_JP: Oracle11g
+              pt_BR: Oracle11g
+              zh_Hans: Oracle11g
+            value: oracle11g
+          - icon: ''
+            label:
+              en_US: PostgreSQL
+              ja_JP: PostgreSQL
+              pt_BR: PostgreSQL
+              zh_Hans: PostgreSQL
+            value: postgresql
+          - icon: ''
+            label:
+              en_US: Microsoft SQL Server
+              ja_JP: Microsoft SQL Server
+              pt_BR: Microsoft SQL Server
+              zh_Hans: Microsoft SQL Server
+            value: mssql
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: localhost
+          form: llm
+          human_description:
+            en_US: Database hostname or IP address (Original string, not URL-encoded
+              string).
+            ja_JP: Database hostname or IP address (Original string, not URL-encoded
+              string).
+            pt_BR: Database hostname or IP address (Original string, not URL-encoded
+              string).
+            zh_Hans: 数据库的主机名或IP地址（原始字符串，非URL编码字符串）。
+          label:
+            en_US: Database Host
+            ja_JP: Database Host
+            pt_BR: Database Host
+            zh_Hans: 数据库地址
+          llm_description: ''
+          max: null
+          min: null
+          name: db_host
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: Database port.
+            ja_JP: Database port.
+            pt_BR: Database port.
+            zh_Hans: 数据库的端口。
+          label:
+            en_US: Port
+            ja_JP: Port
+            pt_BR: Port
+            zh_Hans: 端口
+          llm_description: ''
+          max: null
+          min: null
+          name: db_port
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: Database username (Original string, not URL-encoded string).
+            ja_JP: Database username (Original string, not URL-encoded string).
+            pt_BR: Database username (Original string, not URL-encoded string).
+            zh_Hans: 数据库的用户名（原始字符串，非URL编码字符串）。
+          label:
+            en_US: Username
+            ja_JP: Username
+            pt_BR: Username
+            zh_Hans: 用户名
+          llm_description: ''
+          max: null
+          min: null
+          name: db_username
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: Database password (Original string, not URL-encoded string).
+            ja_JP: Database password (Original string, not URL-encoded string).
+            pt_BR: Database password (Original string, not URL-encoded string).
+            zh_Hans: 数据库的密码（原始字符串，非URL编码字符串）。
+          label:
+            en_US: Password
+            ja_JP: Password
+            pt_BR: Password
+            zh_Hans: 密码
+          llm_description: ''
+          max: null
+          min: null
+          name: db_password
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: secret-input
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: Database name (Original string, not URL-encoded string).
+            ja_JP: Database name (Original string, not URL-encoded string).
+            pt_BR: Database name (Original string, not URL-encoded string).
+            zh_Hans: 数据库的名称（原始字符串，非URL编码字符串）。
+          label:
+            en_US: Database name
+            ja_JP: Database name
+            pt_BR: Database name
+            zh_Hans: 库名
+          llm_description: ''
+          max: null
+          min: null
+          name: db_name
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: 'Database properties, for example: alt_host=host1&alt_host=host2&ssl_cipher=%2Fpath%2Fto%2Fcrt'
+            ja_JP: 'Database properties, for example: alt_host=host1&alt_host=host2&ssl_cipher=%2Fpath%2Fto%2Fcrt'
+            pt_BR: 'Database properties, for example: alt_host=host1&alt_host=host2&ssl_cipher=%2Fpath%2Fto%2Fcrt'
+            zh_Hans: 数据库属性，例如：alt_host=host1&alt_host=host2&ssl_cipher=%2Fpath%2Fto%2Fcrt
+          label:
+            en_US: Database properties
+            ja_JP: Database properties
+            pt_BR: Database properties
+            zh_Hans: 数据库属性
+          llm_description: ''
+          max: null
+          min: null
+          name: db_properties
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: 'SQL query statement, for example: select * from tbl_name'
+            ja_JP: 'SQL query statement, for example: select * from tbl_name'
+            pt_BR: 'SQL query statement, for example: select * from tbl_name'
+            zh_Hans: SQL查询语句，例如：select * from tbl_name
+          label:
+            en_US: Query SQL
+            ja_JP: Query SQL
+            pt_BR: Query SQL
+            zh_Hans: SQL查询语句
+          llm_description: 'SQL query statement, for example: select * from tbl_name'
+          max: null
+          min: null
+          name: query_sql
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: markdown
+          form: form
+          human_description:
+            en_US: Used for selecting the output format, markdown or json.
+            ja_JP: Used for selecting the output format, markdown or json.
+            pt_BR: Used for selecting the output format, markdown or json.
+            zh_Hans: 用于选择输出格式，markdown或json。
+          label:
+            en_US: Output format
+            ja_JP: Output format
+            pt_BR: Output format
+            zh_Hans: 输出格式
+          llm_description: ''
+          max: null
+          min: null
+          name: output_format
+          options:
+          - icon: ''
+            label:
+              en_US: MARKDOWN
+              ja_JP: MARKDOWN
+              pt_BR: MARKDOWN
+              zh_Hans: MARKDOWN
+            value: markdown
+          - icon: ''
+            label:
+              en_US: JSON
+              ja_JP: JSON
+              pt_BR: JSON
+              zh_Hans: JSON
+            value: json
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: select
+        params:
+          db_host: ''
+          db_name: ''
+          db_password: ''
+          db_port: ''
+          db_properties: ''
+          db_type: ''
+          db_username: ''
+          output_format: ''
+          query_sql: ''
+        plugin_id: junjiem/db_query
+        plugin_unique_identifier: junjiem/db_query:0.0.11@2eae0951f13c4e8daa099310d706c9502c349236bca81fcc996f2aea9524c97c
+        provider_icon: /console/api/workspaces/current/plugin/icon?tenant_id=cf06077c-5932-488d-9eab-d19c202b0cb9&filename=ce2ce5af47e39e9476fc06eea7fbd05446ad16043d4d16c671e69a3c650a976a.svg
+        provider_id: junjiem/db_query/db_query
+        provider_name: junjiem/db_query/db_query
+        provider_type: builtin
+        selected: false
+        title: SQL查询
+        tool_configurations:
+          output_format:
+            type: constant
+            value: markdown
+        tool_description: 数据库SQL查询工具。
+        tool_label: SQL查询
+        tool_name: sql_query
+        tool_node_version: '2'
+        tool_parameters:
+          db_host:
+            type: mixed
+            value: 159.75.216.197
+          db_name:
+            type: mixed
+            value: ''
+          db_password:
+            type: mixed
+            value: /MySql@Dify2024!
+          db_port:
+            type: constant
+            value: 3306
+          db_properties:
+            type: mixed
+            value: shop_db
+          db_type:
+            type: constant
+            value: mysql
+          db_username:
+            type: mixed
+            value: root
+          query_sql:
+            type: mixed
+            value: '{{#1783567502483.structured_output.sql#}}'
+        type: tool
+      height: 88
+      id: '1783567510324'
+      position:
+        x: 684
+        y: 282
+      positionAbsolute:
+        x: 684
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        model:
+          completion_params:
+            response_format: json_object
+            temperature: 0.7
+          mode: chat
+          name: deepseek-v4-pro
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - id: 9fb6af47-0f6d-42cb-8f98-15e96490f4f9
+          role: system
+          text: '你是一名资深的数据分析师，擅长将SQL查询结果转化为清晰、易懂的业务总结。
+
+
+            ## 输入信息
+
+            - 用户问题：{{user_question}
+
+            - SQL语句：{{sql_query}}
+
+            - 执行结果：{{query_result}}
+
+
+            ## 输出格式要求
+
+
+            请严格按照以下三段式结构输出：
+
+
+            📊 结果概览
+
+            用1-2句话概括核心结论，说明数据范围和数据量级。
+
+
+
+            🔍 关键发现
+
+            - 提炼3-5个最重要的发现，每个发现一行要点
+
+            - 必须包含具体数值，必要时给出百分比或倍数
+
+            - 标注异常值、极值、显著变化
+
+
+            💡 业务洞察
+
+            基于数据给出1-2条可操作的建议或需关注的方向（若数据正常无特别发现可省略此段）。
+
+
+            ## 表达规范
+
+            - 使用业务语言，避免SQL技术术语
+
+            - 大数字加千分位分隔符，小数保留1-2位
+
+            - 比率同时给出绝对值和百分比
+
+            - 对比类明确说明基期和变化方向
+
+            - 金额根据量级自动使用元/万元/亿元
+
+            - 查询结果为空时说明可能原因并建议优化条件
+
+            - 结果超过50行时归类汇总，展示TOP10加"其他"
+
+
+            ## 场景侧重
+
+            - 排名类：突出TOP项占比、首尾差距
+
+            - 趋势类：突出整体走势、拐点、峰值谷值
+
+            - 对比类：突出差异量级、变化率
+
+            - 分布类：突出集中度、主要区间
+
+            - 异常类：突出异常值定位、偏离程度
+
+
+            请基于以上要求输出分析总结。'
+        - id: 453fe726-7c60-44e0-849a-8325914859c7
+          role: user
+          text: '用户问题：{{#1783567498401.query#}}
+
+            sql语句:{{#1783567502483.structured_output.sql#}}
+
+            结果：{{#1783567510324.text#}}'
+        selected: false
+        title: 优化输出结果
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1783567513540'
+      position:
+        x: 986
+        y: 282
+      positionAbsolute:
+        x: 986
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1783567513540'
+          - text
+          value_type: string
+          variable: text
+        selected: false
+        title: 输出
+        type: end
+      height: 88
+      id: '1783567531846'
+      position:
+        x: 691.9999999999999
+        y: 493.00000000000006
+      positionAbsolute:
+        x: 691.9999999999999
+        y: 493.00000000000006
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -382.53863898500595
+      y: -27.736159169550064
+      zoom: 0.9999999999999999
+  rag_pipeline_variables: []
